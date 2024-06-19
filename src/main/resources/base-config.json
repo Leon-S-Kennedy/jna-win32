@@ -1,0 +1,28 @@
+{
+  "lpClassName": "Window",
+  "lpWindowName": "步骤 7",
+  "basePointerMap": {
+    "value": {
+      "address": "100306B00",
+      "offsetList": ["10","18","0","18"]
+    },
+    "coolDownTime": {
+      "address": "48728C",
+      "offsetList": []
+    }
+  },
+  "codeInjectionMap": {
+    "coolDownTime": {
+      "basePointer": {
+        "address": "10002D4F7",
+        "offsetList": []
+      },
+      "originalCodeList": ["83","AE","E0","07","00","00","01"],
+      "newCodeList": ["83","86","E0","07","00","00","02"]
+    },
+    "else": {
+      "originalCodeList": null,
+      "newCodeList": []
+    }
+  }
+}
