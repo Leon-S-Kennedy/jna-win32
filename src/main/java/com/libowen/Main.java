@@ -10,6 +10,9 @@ import com.sun.jna.Memory;
 import com.sun.jna.Pointer;
 import com.sun.jna.platform.win32.WinNT;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -70,27 +73,38 @@ public class Main {
         }
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         BaseConfig baseConfig = ConfigUtil.getConfig();
         Map<String, CodeInjection> codeInjectionMap = baseConfig.getCodeInjectionMap();
         CodeInjection coolDownTime = codeInjectionMap.get("coolDownTime");
 
         WinNT.HANDLE handle = CoreUtil.getProcessHandle(baseConfig);
 
+        Pointer allocPointer = CoreUtil.getVirtualAllocPointer(handle);
+        long l1 = Pointer.nativeValue(allocPointer);
+        long l2 = Pointer.nativeValue(CoreUtil.calcAddress(handle, coolDownTime.getBasePointer(), new Memory(8)));
+        long l = l1 - l2 - 5;
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        DataOutputStream dataOutputStream = new DataOutputStream(byteArrayOutputStream);
+        dataOutputStream.writeLong(l);
+        byte[] bytes = byteArrayOutputStream.toByteArray();
 
-        CoreUtil.writeMemoryByPointer(handle, coolDownTime.getBasePointer(), coolDownTime.getNewCodeMemory());
+        Memory jumpCodeMemory = coolDownTime.getJumpCodeMemory();
 
-        try {
-            TimeUnit.SECONDS.sleep(60);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        CoreUtil.writeMemoryByPointer(handle, coolDownTime.getBasePointer(), coolDownTime.getOriginalCodeMemory());
-
-        //handle.
-
-        //Memory originalCodeBuffer = coolDownTime.getOriginalCodeMemory();
+        //CoreUtil.writeMemoryByPointer(handle, coolDownTime.getBasePointer(), );
+//        CoreUtil.writeMemoryByPointer(handle, coolDownTime.getBasePointer(), coolDownTime.getNewCodeMemory());
+//
+//        try {
+//            TimeUnit.SECONDS.sleep(60);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+//
+//        CoreUtil.writeMemoryByPointer(handle, coolDownTime.getBasePointer(), coolDownTime.getOriginalCodeMemory());
+//
+//        //handle.
+//
+//        Memory originalCodeBuffer = coolDownTime.getOriginalCodeMemory();
         //CoreUtil.writeMemoryByPointer(new WinNT.HANDLE(), coolDownTime.getBasePointer(),originalCodeBuffer);
     }
 }

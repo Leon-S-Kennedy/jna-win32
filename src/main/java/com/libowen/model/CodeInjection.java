@@ -12,6 +12,7 @@ import java.util.List;
 public class CodeInjection {
 
     private BasePointer basePointer;
+    private List<String> jumpCodeList;
     private List<String> originalCodeList;
     private List<String> newCodeList;
 
@@ -23,8 +24,39 @@ public class CodeInjection {
         this.basePointer = basePointer;
     }
 
+    public List<String> getJumpCodeList() {
+        return jumpCodeList;
+    }
+    public void setJumpCodeList(List<String> jumpCodeList) {
+        this.jumpCodeList = jumpCodeList;
+    }
+
+    public byte [] getJumpCodeByteArray(){
+        Byte[] byteArray = jumpCodeList.stream()
+                .map(s -> Integer.parseInt(s, 16))
+                .map(Integer::byteValue)
+                .toArray(Byte[]::new);
+        byte [] bytes=new byte[byteArray.length];
+        for (int i = 0; i < byteArray.length; i++) {
+            bytes[i]=byteArray[i];
+        }
+        return bytes;
+    }
+
+    public Memory getJumpCodeMemory(){
+        byte[] jumpCodeByteArray = getJumpCodeByteArray();
+        int length = jumpCodeByteArray.length;
+        Memory buffer = new Memory(length);
+        buffer.write(0,jumpCodeByteArray,0,length);
+        return buffer;
+    }
+
     public List<String> getOriginalCodeList() {
         return originalCodeList;
+    }
+
+    public void setOriginalCodeList(List<String> originalCodeList) {
+        this.originalCodeList = originalCodeList;
     }
 
     public byte [] getOriginalCodeByteArray(){
@@ -47,12 +79,14 @@ public class CodeInjection {
         return buffer;
     }
 
-    public void setOriginalCodeList(List<String> originalCodeList) {
-        this.originalCodeList = originalCodeList;
-    }
 
     public List<String> getNewCodeList() {
         return newCodeList;
+    }
+
+
+    public void setNewCodeList(List<String> newCodeList) {
+        this.newCodeList = newCodeList;
     }
 
     public byte [] getNewCodeByteArray(){
@@ -76,7 +110,4 @@ public class CodeInjection {
     }
 
 
-    public void setNewCodeList(List<String> newCodeList) {
-        this.newCodeList = newCodeList;
-    }
 }
