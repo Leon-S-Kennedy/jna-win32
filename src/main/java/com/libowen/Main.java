@@ -80,10 +80,13 @@ public class Main {
 
         WinNT.HANDLE handle = CoreUtil.getProcessHandle(baseConfig);
 
-        Pointer allocPointer = CoreUtil.getVirtualAllocPointer(handle);
-        long l1 = Pointer.nativeValue(allocPointer);
+        Pointer allocPointer = CoreUtil.getVirtualAllocMemory(handle,1024);
+
+        long newMemoryAddress = Pointer.nativeValue(allocPointer);
+
+
         long l2 = Pointer.nativeValue(CoreUtil.calcAddress(handle, coolDownTime.getBasePointer(), new Memory(8)));
-        long l = l1 - l2 - 5;
+        long l = newMemoryAddress - l2 - 5;
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         DataOutputStream dataOutputStream = new DataOutputStream(byteArrayOutputStream);
         dataOutputStream.writeLong(l);

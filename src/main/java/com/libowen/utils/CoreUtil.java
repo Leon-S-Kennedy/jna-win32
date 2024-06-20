@@ -105,11 +105,10 @@ public class CoreUtil {
         return result;
     }
 
-    public static Pointer getVirtualAllocPointer(WinNT.HANDLE handle){
-
-        Pointer pointer = kernel32.VirtualAllocEx(handle, null, new BaseTSD.SIZE_T( 1024), WinNT.MEM_COMMIT, WinNT.PAGE_EXECUTE_READWRITE);
-        if (pointer==null){
-            throw new RuntimeException("分配新内存失败！");
+    public static Pointer getVirtualAllocMemory(WinNT.HANDLE handle,long allocSize){
+        Pointer pointer = kernel32.VirtualAllocEx(handle, null, new BaseTSD.SIZE_T(allocSize), WinNT.MEM_COMMIT, WinNT.PAGE_EXECUTE_READWRITE);
+        if(pointer==null){
+            throw new RuntimeException("申请新的内存失败！");
         }
         return pointer;
     }
