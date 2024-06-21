@@ -12,9 +12,9 @@ import java.util.List;
 public class CodeInjection {
 
     private BasePointer basePointer;
-    private List<String> jumpCodeList;
-    private List<String> originalCodeList;
-    private List<String> newCodeList;
+    //private List<String> jumpCodeList;
+    private String originalCode;
+    private String newCode;
 
     public BasePointer getBasePointer() {
         return basePointer;
@@ -24,49 +24,20 @@ public class CodeInjection {
         this.basePointer = basePointer;
     }
 
-    public List<String> getJumpCodeList() {
-        return jumpCodeList;
-    }
-    public void setJumpCodeList(List<String> jumpCodeList) {
-        this.jumpCodeList = jumpCodeList;
+
+    public String getOriginalCode() {
+        return originalCode;
     }
 
-    public byte [] getJumpCodeByteArray(){
-        Byte[] byteArray = jumpCodeList.stream()
-                .map(s -> Integer.parseInt(s, 16))
-                .map(Integer::byteValue)
-                .toArray(Byte[]::new);
-        byte [] bytes=new byte[byteArray.length];
-        for (int i = 0; i < byteArray.length; i++) {
-            bytes[i]=byteArray[i];
-        }
-        return bytes;
-    }
-
-    public Memory getJumpCodeMemory(){
-        byte[] jumpCodeByteArray = getJumpCodeByteArray();
-        int length = jumpCodeByteArray.length;
-        Memory buffer = new Memory(length);
-        buffer.write(0,jumpCodeByteArray,0,length);
-        return buffer;
-    }
-
-    public List<String> getOriginalCodeList() {
-        return originalCodeList;
-    }
-
-    public void setOriginalCodeList(List<String> originalCodeList) {
-        this.originalCodeList = originalCodeList;
+    public void setOriginalCode(String originalCode) {
+        this.originalCode = originalCode;
     }
 
     public byte [] getOriginalCodeByteArray(){
-        Byte[] byteArray = originalCodeList.stream()
-                .map(s -> Integer.parseInt(s, 16))
-                .map(Integer::byteValue)
-                .toArray(Byte[]::new);
-        byte [] bytes=new byte[byteArray.length];
-        for (int i = 0; i < byteArray.length; i++) {
-            bytes[i]=byteArray[i];
+        String[] split = originalCode.split("\\s+");
+        byte [] bytes=new byte[split.length];
+        for (int i = 0; i < bytes.length; i++) {
+            bytes[i]= (byte) Integer.parseInt(split[i], 16);
         }
         return bytes;
     }
@@ -79,24 +50,20 @@ public class CodeInjection {
         return buffer;
     }
 
-
-    public List<String> getNewCodeList() {
-        return newCodeList;
+    public String getNewCode() {
+        return newCode;
     }
 
 
-    public void setNewCodeList(List<String> newCodeList) {
-        this.newCodeList = newCodeList;
+    public void setNewCode(String newCode) {
+        this.newCode = newCode;
     }
 
     public byte [] getNewCodeByteArray(){
-        Byte[] byteArray = newCodeList.stream()
-                .map(s -> Integer.parseInt(s, 16))
-                .map(Integer::byteValue)
-                .toArray(Byte[]::new);
-        byte [] bytes=new byte[byteArray.length];
-        for (int i = 0; i < byteArray.length; i++) {
-            bytes[i]=byteArray[i];
+        String[] split = newCode.split("\\s+");
+        byte [] bytes=new byte[split.length];
+        for (int i = 0; i < bytes.length; i++) {
+            bytes[i]= (byte) Integer.parseInt(split[i], 16);
         }
         return bytes;
     }

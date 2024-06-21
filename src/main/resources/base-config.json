@@ -17,13 +17,16 @@
         "address": "10002D4F7",
         "offsetList": []
       },
-      "jumpCodeList": ["E9","00","00","00","00","90","90"],
-      "originalCodeList": ["83","AE","E0","07","00","00","01"],
-      "newCodeList": ["83","86","E0","07","00","00","02"]
+      "originalCode": "83 AE E0 07 00 00 01",
+      "newCode": "83 86 E0 07 00 00 02"
     },
     "else": {
-      "originalCodeList": null,
-      "newCodeList": []
+      "basePointer": {
+        "address": null,
+        "offsetList": []
+      },
+      "originalCode": null,
+      "newCode": null
     }
   }
 }

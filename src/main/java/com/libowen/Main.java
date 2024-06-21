@@ -77,10 +77,17 @@ public class Main {
         BaseConfig baseConfig = ConfigUtil.getConfig();
         Map<String, CodeInjection> codeInjectionMap = baseConfig.getCodeInjectionMap();
         CodeInjection coolDownTime = codeInjectionMap.get("coolDownTime");
-
         WinNT.HANDLE handle = CoreUtil.getProcessHandle(baseConfig);
 
         Pointer allocPointer = CoreUtil.getVirtualAllocMemory(handle,1024);
+
+        CoreUtil.codeInjection(handle,coolDownTime);
+        try {
+            TimeUnit.SECONDS.sleep(30);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        //CoreUtil.codeReset(handle,coolDownTime);
 
         long newMemoryAddress = Pointer.nativeValue(allocPointer);
 
@@ -92,7 +99,6 @@ public class Main {
         dataOutputStream.writeLong(l);
         byte[] bytes = byteArrayOutputStream.toByteArray();
 
-        Memory jumpCodeMemory = coolDownTime.getJumpCodeMemory();
 
         //CoreUtil.writeMemoryByPointer(handle, coolDownTime.getBasePointer(), );
 //        CoreUtil.writeMemoryByPointer(handle, coolDownTime.getBasePointer(), coolDownTime.getNewCodeMemory());
