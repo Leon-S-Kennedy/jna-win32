@@ -17,7 +17,7 @@
         "address": "10002D4F7",
         "offsetList": []
       },
-      "originalCode": "83 AE E0 07 00 00 01",
+      "originalCode": "83 AE E0 07 00 00 01 48 8D 4D F8 E8 19 B9 FD FF",
       "newCode": "83 86 E0 07 00 00 02"
     },
     "else": {

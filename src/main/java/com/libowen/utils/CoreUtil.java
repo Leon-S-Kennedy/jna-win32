@@ -12,6 +12,7 @@ import com.sun.jna.ptr.IntByReference;
 import java.lang.management.ManagementFactory;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
@@ -145,6 +146,13 @@ public class CoreUtil {
         return pointer;
     }
 
+    public static void freeVirtualAllocMemory(WinNT.HANDLE handle, Pointer allocMemory){
+        boolean result = kernel32.VirtualFreeEx(handle, allocMemory, new BaseTSD.SIZE_T(0), Kernel32.MEM_RELEASE);
+        if (!result) {
+            System.err.println("内存释放失败");
+        }
+    }
+
     private static void printByteList(){
         Scanner scanner = new Scanner(System.in);
         System.out.println("请输入字节集:");
@@ -164,6 +172,13 @@ public class CoreUtil {
         stringBuilder.append("]");
         System.out.println(stringBuilder);
     }
+    private static void printHexArray(byte[] bytes){
+        String[] strings = new String[bytes.length];
+        for (int i = 0; i < bytes.length; i++) {
+            strings[i]=String.format("%02X", bytes[i]);
+        }
+        System.out.println(Arrays.toString(strings));
+    }
 
     public static boolean is64BitsProcess(WinNT.HANDLE handle){
         if(SYSTEM_BITS!=64){
@@ -177,69 +192,62 @@ public class CoreUtil {
         return wow64Process.getValue()==0;
     }
 
-    public static void test(String[] args){
-//        Pointer virtualAllocEx = kernel32.VirtualAllocEx(new WinNT.HANDLE(), null, new BaseTSD.SIZE_T(4 * 1024), WinNT.MEM_COMMIT, WinNT.PAGE_EXECUTE_READWRITE);
-
-    }
-
-    public static void codeInjection(WinNT.HANDLE handle,CodeInjection coolDownTime) {
-        byte[] originalCodeByteArray = coolDownTime.getOriginalCodeByteArray();
-        byte[] newCodeByteArray = coolDownTime.getNewCodeByteArray();
+    public static Pointer codeInjection(WinNT.HANDLE handle,CodeInjection injectionObject) {
+        byte[] originalCodeByteArray = injectionObject.getOriginalCodeByteArray();
+        byte[] newCodeByteArray = injectionObject.getNewCodeByteArray();
+        BasePointer basePointer = injectionObject.getBasePointer();
+        Memory newCodeMemory = injectionObject.getNewCodeMemory();
         int originalLength = originalCodeByteArray.length;
+        Pointer allocMemory = null;
         if(originalLength == newCodeByteArray.length){
-            //原始代码和注入代码的字节数一样，不用额外分配内存
-            writeMemoryByPointer(handle,coolDownTime.getBasePointer(),coolDownTime.getNewCodeMemory());
+            writeMemoryByPointer(handle, basePointer, newCodeMemory);
         }else {
+            Memory memory = new Memory(originalLength);
+
             if(!is64BitsProcess(handle)){
                 //32位程序的注入
                 if(originalLength<8){
-                    throw new RuntimeException("originalCode的字节长度有误,不支持跳转！");
+                    throw new RuntimeException("32bits下的originalCode的字节长度有误,不支持跳转！");
                 }
-                Pointer allocMemory = getVirtualAllocMemory(handle, 1024);
-                byte[] bytes = new byte[originalLength];
-                bytes[0]=(byte) 0x50;
-                bytes[1]=(byte) 0xB8;
-                int fourByteNumber = 0x12345678;
-                bytes[2] = (byte) (fourByteNumber & 0xFF);
-                bytes[3] = (byte) ((fourByteNumber >> 8) & 0xFF);
-                bytes[4] = (byte) ((fourByteNumber >> 16) & 0xFF);
-                bytes[5] = (byte) ((fourByteNumber >> 24) & 0xFF);
-                bytes[6]=(byte) 0xFF;
-                bytes[7]=(byte) 0xE0;
+                allocMemory = getVirtualAllocMemory(handle, 1024);
+
+                memory.setByte(0,(byte) 0x50);
+                memory.setByte(1,(byte) 0xB8);
+                memory.setInt(2,(int) Pointer.nativeValue(allocMemory));
+                memory.setByte(6,(byte) 0xFF);
+                memory.setByte(7,(byte) 0xE0);
                 for (int i = 8; i < originalLength; i++) {
-                    bytes[i] = (byte) 0x90;
+                    memory.setByte(i,(byte) 0x90);
                 }
             }else {
                 //64位程序的注入
+                if(originalLength<13){
+                    throw new RuntimeException("64位下的originalCode的字节长度有误,不支持跳转！");
+                }
+                allocMemory = getVirtualAllocMemory(handle, 1024);
+                memory.setByte(0,(byte) 0x50);
+                memory.setByte(1,(byte) 0x48);
+                memory.setByte(2,(byte) 0xB8);
+                memory.setLong(3,Pointer.nativeValue(allocMemory));
+                memory.setByte(11,(byte) 0xFF);
+                memory.setByte(12,(byte) 0xE0);
+                for (int i = 13; i < originalLength; i++) {
+                    memory.setByte(i,(byte) 0x90);
+                }
             }
+            writeMemoryByPointer(handle, basePointer,memory);
+            writeProcessMemoryByAddress(handle,allocMemory,newCodeMemory);
         }
+        return allocMemory;
     }
+    public static void codeReset(WinNT.HANDLE handle, CodeInjection injectionObject,Pointer allocMemory) {
+        BasePointer basePointer = injectionObject.getBasePointer();
+        Memory originalCodeMemory = injectionObject.getOriginalCodeMemory();
 
-    public static void main(String[] args) {
-//        int originalLength = 20;
-//        byte[] bytes = new byte[originalLength];
-//        bytes[0]=(byte) 0x50;
-//        bytes[1]=(byte) 0xB8;
-//        int fourByteNumber = 0x12345678;
-//        bytes[2] = (byte) (fourByteNumber & 0xFF);
-//        bytes[3] = (byte) ((fourByteNumber >> 8) & 0xFF);
-//        bytes[4] = (byte) ((fourByteNumber >> 16) & 0xFF);
-//        bytes[5] = (byte) ((fourByteNumber >> 24) & 0xFF);
-//        bytes[6]=(byte) 0xFF;
-//        bytes[7]=(byte) 0xE0;
-//        for (int i = 8; i < originalLength; i++) {
-//            bytes[i] = (byte) 0x90;
-//        }
-//        for (byte b : bytes) {
-//            System.out.printf("%02X ", b);
-//        }
-
-
-        // 也可以使用 Java 内置的 ByteOrder 来检查字节序
-        if (ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN) {
-            System.out.println("使用 ByteOrder：当前系统是大端字节序 (Big-endian)");
-        } else if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN) {
-            System.out.println("使用 ByteOrder：当前系统是小端字节序 (Little-endian)");
+        writeMemoryByPointer(handle, basePointer, originalCodeMemory);
+        if(allocMemory!=null){
+            //说明此处分配了内存需要释放
+            freeVirtualAllocMemory(handle,allocMemory);
         }
     }
 }

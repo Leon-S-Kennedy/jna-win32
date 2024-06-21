@@ -79,41 +79,13 @@ public class Main {
         CodeInjection coolDownTime = codeInjectionMap.get("coolDownTime");
         WinNT.HANDLE handle = CoreUtil.getProcessHandle(baseConfig);
 
-        Pointer allocPointer = CoreUtil.getVirtualAllocMemory(handle,1024);
+        Pointer allocMemory = CoreUtil.codeInjection(handle, coolDownTime);
 
-        CoreUtil.codeInjection(handle,coolDownTime);
         try {
             TimeUnit.SECONDS.sleep(30);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        //CoreUtil.codeReset(handle,coolDownTime);
-
-        long newMemoryAddress = Pointer.nativeValue(allocPointer);
-
-
-        long l2 = Pointer.nativeValue(CoreUtil.calcAddress(handle, coolDownTime.getBasePointer(), new Memory(8)));
-        long l = newMemoryAddress - l2 - 5;
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        DataOutputStream dataOutputStream = new DataOutputStream(byteArrayOutputStream);
-        dataOutputStream.writeLong(l);
-        byte[] bytes = byteArrayOutputStream.toByteArray();
-
-
-        //CoreUtil.writeMemoryByPointer(handle, coolDownTime.getBasePointer(), );
-//        CoreUtil.writeMemoryByPointer(handle, coolDownTime.getBasePointer(), coolDownTime.getNewCodeMemory());
-//
-//        try {
-//            TimeUnit.SECONDS.sleep(60);
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
-//
-//        CoreUtil.writeMemoryByPointer(handle, coolDownTime.getBasePointer(), coolDownTime.getOriginalCodeMemory());
-//
-//        //handle.
-//
-//        Memory originalCodeBuffer = coolDownTime.getOriginalCodeMemory();
-        //CoreUtil.writeMemoryByPointer(new WinNT.HANDLE(), coolDownTime.getBasePointer(),originalCodeBuffer);
+        CoreUtil.codeReset(handle,coolDownTime,allocMemory);
     }
 }
