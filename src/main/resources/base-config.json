@@ -12,21 +12,21 @@
     }
   },
   "codeInjectionMap": {
-    "coolDownTime": {
+    "64bits": {
       "basePointer": {
         "address": "10002D4F7",
         "offsetList": []
       },
       "originalCode": "83 AE E0 07 00 00 01 48 8D 4D F8 E8 19 B9 FD FF",
-      "newCode": "83 86 E0 07 00 00 02"
+      "newCode": "58 83 86 E0 07 00 00 02 48 8D 4D F8 FF 15 02 00 00 00 EB 08 20 8E 00 00 01 00 00 00 50 48 B8 04 D5 02 00 01 00 00 00 FF E0"
     },
-    "else": {
+    "32bits": {
       "basePointer": {
-        "address": null,
+        "address": "004275E3",
         "offsetList": []
       },
-      "originalCode": null,
-      "newCode": null
+      "originalCode": "83 AB A4 04 00 00 01 8D 45 D4",
+      "newCode": "58 83 83 A4 04 00 00 02 8D 45 D4 50 B8 EB 75 42 00 FF E0"
     }
   }
 }

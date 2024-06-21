@@ -206,7 +206,7 @@ public class CoreUtil {
 
             if(!is64BitsProcess(handle)){
                 //32位程序的注入
-                if(originalLength<8){
+                if(originalLength<9){
                     throw new RuntimeException("32bits下的originalCode的字节长度有误,不支持跳转！");
                 }
                 allocMemory = getVirtualAllocMemory(handle, 1024);
@@ -216,12 +216,13 @@ public class CoreUtil {
                 memory.setInt(2,(int) Pointer.nativeValue(allocMemory));
                 memory.setByte(6,(byte) 0xFF);
                 memory.setByte(7,(byte) 0xE0);
-                for (int i = 8; i < originalLength; i++) {
+                memory.setByte(8,(byte) 0x58);
+                for (int i = 9; i < originalLength; i++) {
                     memory.setByte(i,(byte) 0x90);
                 }
             }else {
                 //64位程序的注入
-                if(originalLength<13){
+                if(originalLength<14){
                     throw new RuntimeException("64位下的originalCode的字节长度有误,不支持跳转！");
                 }
                 allocMemory = getVirtualAllocMemory(handle, 1024);
@@ -231,7 +232,8 @@ public class CoreUtil {
                 memory.setLong(3,Pointer.nativeValue(allocMemory));
                 memory.setByte(11,(byte) 0xFF);
                 memory.setByte(12,(byte) 0xE0);
-                for (int i = 13; i < originalLength; i++) {
+                memory.setByte(13,(byte) 0x58);
+                for (int i = 14; i < originalLength; i++) {
                     memory.setByte(i,(byte) 0x90);
                 }
             }

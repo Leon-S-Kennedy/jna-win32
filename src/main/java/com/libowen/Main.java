@@ -24,31 +24,6 @@ import java.util.concurrent.TimeUnit;
  */
 public class Main {
 
-//    public static void main1(String[] args) throws Exception {
-//        //读取基本配置
-//        BaseConfig baseConfig = ConfigUtil.getConfig();
-//        //获取进程句柄
-//        WinNT.HANDLE handle = CoreUtil.getProcessHandle(baseConfig);
-//
-//        //获取基指针对象
-//        BasePointer basePointer = baseConfig.getBasePointer();
-//
-//        Memory buffer = new Memory(8);
-//        CoreUtil.readMemoryByPointer(handle, basePointer,buffer);
-//
-//        System.out.println(buffer.getInt(0));
-//
-//
-//        int newValue = 5000;
-//        buffer.setInt(0, newValue);
-//        while (true){
-//            CoreUtil.writeMemoryByPointer(handle, basePointer,buffer);
-//
-//        }
-//
-//        //CoreUtil.kernel32.CloseHandle(handle);
-//    }
-
     public static void mainx(String[] args) {
         BaseConfig baseConfig = ConfigUtil.getConfig();
         Map<String, BasePointer> basePointerMap = baseConfig.getBasePointerMap();
@@ -76,16 +51,16 @@ public class Main {
     public static void main(String[] args) throws IOException {
         BaseConfig baseConfig = ConfigUtil.getConfig();
         Map<String, CodeInjection> codeInjectionMap = baseConfig.getCodeInjectionMap();
-        CodeInjection coolDownTime = codeInjectionMap.get("coolDownTime");
+        CodeInjection bits32 = codeInjectionMap.get("32bits");
         WinNT.HANDLE handle = CoreUtil.getProcessHandle(baseConfig);
 
-        Pointer allocMemory = CoreUtil.codeInjection(handle, coolDownTime);
+        Pointer allocMemory = CoreUtil.codeInjection(handle, bits32);
 
         try {
             TimeUnit.SECONDS.sleep(30);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        CoreUtil.codeReset(handle,coolDownTime,allocMemory);
+        CoreUtil.codeReset(handle,bits32,allocMemory);
     }
 }
