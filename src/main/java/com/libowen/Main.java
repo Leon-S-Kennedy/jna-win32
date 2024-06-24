@@ -10,8 +10,6 @@ import com.sun.jna.Memory;
 import com.sun.jna.Pointer;
 import com.sun.jna.platform.win32.WinNT;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -24,35 +22,37 @@ import java.util.concurrent.TimeUnit;
  */
 public class Main {
 
-    public static void mainx(String[] args) {
+    public static void main(String[] args) {
         BaseConfig baseConfig = ConfigUtil.getConfig();
+        String lpClassName = baseConfig.getLpClassName();
+        String lpWindowName = baseConfig.getLpWindowName();
         Map<String, BasePointer> basePointerMap = baseConfig.getBasePointerMap();
         BasePointer valueBasePointer = basePointerMap.get("value");
 
-        WinNT.HANDLE handle = CoreUtil.getProcessHandle(baseConfig);
+        WinNT.HANDLE handle = CoreUtil.getProcessHandle(lpClassName,lpWindowName);
 
-        Memory buffer = new Memory(8);
-        //CoreUtil.readMemoryByPointer(handle,valueBasePointer,buffer);
-
-//        System.out.println(buffer.getInt(0));
-
-        Pointer tempAddress = CoreUtil.calcAddress(handle, valueBasePointer, buffer);
+        Memory buffer = new Memory(4);
         buffer.setInt(0,5000);
-        ValueLockTask valueLockTask = new ValueLockTask(handle, tempAddress, buffer, 200);
-        ExecutorService threadPool = CoreUtil.getThreadPool();
-        threadPool.submit(valueLockTask);
+        CoreUtil.writeMemoryByPointer(handle,valueBasePointer,buffer);
+
+        ValueLockTask valueLockTask = CoreUtil.valueLock(handle, valueBasePointer, new Memory(4), 200L);
         try {
-            Thread.sleep(3600000L);
+            Thread.sleep(36000L);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        valueLockTask.stop();
+        ExecutorService threadPool = CoreUtil.getThreadPool();
+        threadPool.shutdown();
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void mainx(String[] args) throws IOException {
         BaseConfig baseConfig = ConfigUtil.getConfig();
+        String lpClassName = baseConfig.getLpClassName();
+        String lpWindowName = baseConfig.getLpWindowName();
         Map<String, CodeInjection> codeInjectionMap = baseConfig.getCodeInjectionMap();
         CodeInjection bits32 = codeInjectionMap.get("32bits");
-        WinNT.HANDLE handle = CoreUtil.getProcessHandle(baseConfig);
+        WinNT.HANDLE handle = CoreUtil.getProcessHandle(lpClassName,lpWindowName);
 
         Pointer allocMemory = CoreUtil.codeInjection(handle, bits32);
 
