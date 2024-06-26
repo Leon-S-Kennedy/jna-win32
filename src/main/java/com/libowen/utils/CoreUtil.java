@@ -208,47 +208,51 @@ public class CoreUtil {
         Memory newCodeMemory = injectionObject.getNewCodeMemory();
         int originalLength = originalCodeByteArray.length;
         Pointer allocMemory = null;
-        if (originalLength == newCodeByteArray.length) {
-            writeMemoryByPointer(handle, basePointer, newCodeMemory);
-        } else {
-            Memory memory = new Memory(originalLength);
-
-            if (!is64BitsProcess(handle)) {
-                //32位程序的注入
-                if (originalLength < 9) {
-                    throw new RuntimeException("32bits下的originalCode的字节长度有误,不支持跳转！");
-                }
-                allocMemory = getVirtualAllocMemory(handle, 1024);
-
-                memory.setByte(0, (byte) 0x50);
-                memory.setByte(1, (byte) 0xB8);
-                memory.setInt(2, (int) Pointer.nativeValue(allocMemory));
-                memory.setByte(6, (byte) 0xFF);
-                memory.setByte(7, (byte) 0xE0);
-                memory.setByte(8, (byte) 0x58);
-                for (int i = 9; i < originalLength; i++) {
-                    memory.setByte(i, (byte) 0x90);
-                }
+        if(basePointer!=null&&originalLength!=0){
+            if (originalLength == newCodeByteArray.length) {
+                writeMemoryByPointer(handle, basePointer, newCodeMemory);
             } else {
-                //64位程序的注入
-                if (originalLength < 14) {
-                    throw new RuntimeException("64位下的originalCode的字节长度有误,不支持跳转！");
+                Memory memory = new Memory(originalLength);
+
+                if (!is64BitsProcess(handle)) {
+                    //32位程序的注入
+                    if (originalLength < 9) {
+                        throw new RuntimeException("32bits下的originalCode的字节长度有误,不支持跳转！");
+                    }
+                    allocMemory = getVirtualAllocMemory(handle, 1024);
+
+                    memory.setByte(0, (byte) 0x50);
+                    memory.setByte(1, (byte) 0xB8);
+                    memory.setInt(2, (int) Pointer.nativeValue(allocMemory));
+                    memory.setByte(6, (byte) 0xFF);
+                    memory.setByte(7, (byte) 0xE0);
+                    memory.setByte(8, (byte) 0x58);
+                    for (int i = 9; i < originalLength; i++) {
+                        memory.setByte(i, (byte) 0x90);
+                    }
+                } else {
+                    //64位程序的注入
+                    if (originalLength < 14) {
+                        throw new RuntimeException("64位下的originalCode的字节长度有误,不支持跳转！");
+                    }
+                    allocMemory = getVirtualAllocMemory(handle, 1024);
+                    memory.setByte(0, (byte) 0x50);
+                    memory.setByte(1, (byte) 0x48);
+                    memory.setByte(2, (byte) 0xB8);
+                    memory.setLong(3, Pointer.nativeValue(allocMemory));
+                    memory.setByte(11, (byte) 0xFF);
+                    memory.setByte(12, (byte) 0xE0);
+                    memory.setByte(13, (byte) 0x58);
+                    for (int i = 14; i < originalLength; i++) {
+                        memory.setByte(i, (byte) 0x90);
+                    }
                 }
-                allocMemory = getVirtualAllocMemory(handle, 1024);
-                memory.setByte(0, (byte) 0x50);
-                memory.setByte(1, (byte) 0x48);
-                memory.setByte(2, (byte) 0xB8);
-                memory.setLong(3, Pointer.nativeValue(allocMemory));
-                memory.setByte(11, (byte) 0xFF);
-                memory.setByte(12, (byte) 0xE0);
-                memory.setByte(13, (byte) 0x58);
-                for (int i = 14; i < originalLength; i++) {
-                    memory.setByte(i, (byte) 0x90);
-                }
+                writeMemoryByPointer(handle, basePointer, memory);
             }
-            writeMemoryByPointer(handle, basePointer, memory);
-            writeProcessMemoryByAddress(handle, allocMemory, newCodeMemory);
+        }else {
+            allocMemory = getVirtualAllocMemory(handle, 1024);
         }
+        writeProcessMemoryByAddress(handle, allocMemory, newCodeMemory);
         return allocMemory;
     }
 
